@@ -9,6 +9,11 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ThemeProvider } from "@/hooks/use-theme";
+import { LocationProvider } from "@/hooks/use-location";
+import { CartProvider } from "@/hooks/use-cart";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -72,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Rentify — Rent anything, anywhere" },
+      { name: "description", content: "India's modern rental marketplace. Rent cameras, gaming gear, tools, dresses, and more — or list your unused items to earn." },
+      { name: "author", content: "Rentify" },
+      { property: "og:title", content: "Rentify — Rent anything, anywhere" },
+      { property: "og:description", content: "Rent and sell second-hand items in your neighborhood." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@Rentify" },
     ],
     links: [
       {
@@ -113,7 +118,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <ThemeProvider>
+        <AuthProvider>
+          <LocationProvider>
+            <CartProvider>
+              <Outlet />
+              <Toaster richColors position="top-center" />
+            </CartProvider>
+          </LocationProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
