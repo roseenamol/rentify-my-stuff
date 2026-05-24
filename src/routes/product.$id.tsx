@@ -27,8 +27,22 @@ function ProductPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select(`*, owner:profiles!products_owner_id_fkey(display_name, avatar_url, city, is_verified, rating), category:categories(name, slug)`)
+        .select(`*, category:categories(name, slug)`)
         .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: owner } = useQuery({
+    queryKey: ["owner", p?.owner_id],
+    enabled: !!p?.owner_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url, city, is_verified, rating")
+        .eq("id", p!.owner_id)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -163,11 +177,11 @@ function ProductPage() {
             <div className="rounded-2xl border border-border bg-card p-4">
               <div className="flex items-center gap-3">
                 <div className="grid h-12 w-12 place-items-center rounded-full bg-gradient-accent text-lg font-bold text-primary-foreground">
-                  {(p.owner?.display_name ?? "U").slice(0,1).toUpperCase()}
+                  {(owner?.display_name ?? "U").slice(0,1).toUpperCase()}
                 </div>
                 <div>
-                  <p className="font-semibold">{p.owner?.display_name ?? "Owner"}{p.owner?.is_verified && <ShieldCheck className="ml-1 inline h-4 w-4 text-secondary" />}</p>
-                  <p className="text-xs text-muted-foreground">{p.owner?.city ?? "—"}</p>
+                  <p className="font-semibold">{owner?.display_name ?? "Owner"}{owner?.is_verified && <ShieldCheck className="ml-1 inline h-4 w-4 text-secondary" />}</p>
+                  <p className="text-xs text-muted-foreground">{owner?.city ?? "—"}</p>
                 </div>
               </div>
             </div>
