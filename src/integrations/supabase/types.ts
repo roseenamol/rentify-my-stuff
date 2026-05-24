@@ -14,7 +14,355 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          amount: number
+          buyer_id: string
+          created_at: string
+          delivery_address: string | null
+          delivery_option: string
+          id: string
+          owner_id: string
+          product_id: string
+          status: Database["public"]["Enums"]["order_status"]
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          created_at?: string
+          delivery_address?: string | null
+          delivery_option?: string
+          id?: string
+          owner_id: string
+          product_id: string
+          status?: Database["public"]["Enums"]["order_status"]
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          created_at?: string
+          delivery_address?: string | null
+          delivery_option?: string
+          id?: string
+          owner_id?: string
+          product_id?: string
+          status?: Database["public"]["Enums"]["order_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          area: string | null
+          category_id: string | null
+          city: string | null
+          condition: string | null
+          created_at: string
+          delivery_available: boolean
+          deposit: number
+          description: string | null
+          id: string
+          images: string[]
+          listing_type: Database["public"]["Enums"]["listing_type"]
+          owner_id: string
+          pincode: string | null
+          rating: number
+          rent_price_day: number | null
+          rent_price_hour: number | null
+          rent_price_week: number | null
+          sale_price: number | null
+          status: Database["public"]["Enums"]["product_status"]
+          subcategory_id: string | null
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          area?: string | null
+          category_id?: string | null
+          city?: string | null
+          condition?: string | null
+          created_at?: string
+          delivery_available?: boolean
+          deposit?: number
+          description?: string | null
+          id?: string
+          images?: string[]
+          listing_type?: Database["public"]["Enums"]["listing_type"]
+          owner_id: string
+          pincode?: string | null
+          rating?: number
+          rent_price_day?: number | null
+          rent_price_hour?: number | null
+          rent_price_week?: number | null
+          sale_price?: number | null
+          status?: Database["public"]["Enums"]["product_status"]
+          subcategory_id?: string | null
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          area?: string | null
+          category_id?: string | null
+          city?: string | null
+          condition?: string | null
+          created_at?: string
+          delivery_available?: boolean
+          deposit?: number
+          description?: string | null
+          id?: string
+          images?: string[]
+          listing_type?: Database["public"]["Enums"]["listing_type"]
+          owner_id?: string
+          pincode?: string | null
+          rating?: number
+          rent_price_day?: number | null
+          rent_price_hour?: number | null
+          rent_price_week?: number | null
+          sale_price?: number | null
+          status?: Database["public"]["Enums"]["product_status"]
+          subcategory_id?: string | null
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          area: string | null
+          avatar_url: string | null
+          city: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          is_verified: boolean
+          phone: string | null
+          pincode: string | null
+          rating: number
+          updated_at: string
+        }
+        Insert: {
+          area?: string | null
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          is_verified?: boolean
+          phone?: string | null
+          pincode?: string | null
+          rating?: number
+          updated_at?: string
+        }
+        Update: {
+          area?: string | null
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_verified?: boolean
+          phone?: string | null
+          pincode?: string | null
+          rating?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rentals: {
+        Row: {
+          created_at: string
+          delivery_address: string | null
+          delivery_option: string
+          deposit: number
+          end_date: string
+          id: string
+          owner_id: string
+          product_id: string
+          renter_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["rental_status"]
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string
+          delivery_address?: string | null
+          delivery_option?: string
+          deposit?: number
+          end_date: string
+          id?: string
+          owner_id: string
+          product_id: string
+          renter_id: string
+          start_date: string
+          status?: Database["public"]["Enums"]["rental_status"]
+          total_amount: number
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: string | null
+          delivery_option?: string
+          deposit?: number
+          end_date?: string
+          id?: string
+          owner_id?: string
+          product_id?: string
+          renter_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["rental_status"]
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rentals_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          product_id: string
+          rating: number
+          reviewer_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          rating: number
+          reviewer_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          rating?: number
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subcategories: {
+        Row: {
+          category_id: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          category_id: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          category_id?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wishlists: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlists_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +371,26 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      listing_type: "rent" | "sale" | "both"
+      order_status:
+        | "pending"
+        | "accepted"
+        | "rejected"
+        | "packed"
+        | "out_for_delivery"
+        | "delivered"
+        | "cancelled"
+      product_status: "active" | "unavailable" | "rented" | "sold" | "deleted"
+      rental_status:
+        | "pending"
+        | "accepted"
+        | "rejected"
+        | "out_for_delivery"
+        | "delivered"
+        | "in_use"
+        | "return_scheduled"
+        | "returned"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +517,29 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      listing_type: ["rent", "sale", "both"],
+      order_status: [
+        "pending",
+        "accepted",
+        "rejected",
+        "packed",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
+      product_status: ["active", "unavailable", "rented", "sold", "deleted"],
+      rental_status: [
+        "pending",
+        "accepted",
+        "rejected",
+        "out_for_delivery",
+        "delivered",
+        "in_use",
+        "return_scheduled",
+        "returned",
+        "cancelled",
+      ],
+    },
   },
 } as const
