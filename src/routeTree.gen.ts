@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RentalsRouteImport } from './routes/rentals'
@@ -21,6 +22,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/rentals': typeof RentalsRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/rentals': typeof RentalsRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/rentals': typeof RentalsRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/search'
     | '/signup'
+    | '/sitemap.xml'
     | '/category/$slug'
     | '/product/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/search'
     | '/signup'
+    | '/sitemap.xml'
     | '/category/$slug'
     | '/product/$id'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/search'
     | '/signup'
+    | '/sitemap.xml'
     | '/category/$slug'
     | '/product/$id'
   fileRoutesById: FileRoutesById
@@ -169,12 +181,20 @@ export interface RootRouteChildren {
   RentalsRoute: typeof RentalsRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ProductIdRoute: typeof ProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -265,9 +285,20 @@ const rootRouteChildren: RootRouteChildren = {
   RentalsRoute: RentalsRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   CategorySlugRoute: CategorySlugRoute,
   ProductIdRoute: ProductIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
