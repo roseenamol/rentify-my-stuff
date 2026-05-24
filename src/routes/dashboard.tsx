@@ -88,7 +88,7 @@ function DashboardPage() {
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((p: { id: string; title: string; images: string[]; status: string; rent_price_day: number; sale_price: number; listing_type: string }) => (
+              {products.map((p) => (
                 <div key={p.id} className="overflow-hidden rounded-2xl border border-border bg-card">
                   <div className="flex gap-3 p-3">
                     <div className="h-20 w-20 flex-none overflow-hidden rounded-lg bg-muted">
