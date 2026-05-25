@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
-import { Filter, Loader2 } from "lucide-react";
+import { Filter, Loader2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ProductCard, type ProductCardData } from "@/components/products/ProductCard";
@@ -60,28 +60,36 @@ function SearchPage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-5 lg:px-6">
+        <div className="mb-1">
+          <h1 className="text-lg font-bold">Browse Rentals</h1>
+          <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <MapPin className="h-3 w-3" />
+            {location?.city ?? "Set your location"} · {data?.length ?? 0} items
+          </p>
+        </div>
+
         <form
           onSubmit={(e) => { e.preventDefault(); setSearch({ q }); }}
-          className="flex gap-2"
+          className="mt-3 flex gap-2"
         >
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search rentals…"
-            className="h-11 rounded-full"
+            placeholder="Search cameras, bikes, tools…"
+            className="h-11 rounded-xl border-2 bg-muted/60 focus-visible:border-primary"
           />
-          <Button type="submit" className="h-11 rounded-full px-6">Search</Button>
+          <Button type="submit" className="h-11 rounded-xl bg-primary px-5 font-bold">Search</Button>
         </form>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          {([["all","All"],["rent","Rent only"],["sale","Buy only"]] as const).map(([k,l]) => (
+        {/* Category-style type chips */}
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {([["all","✦ All"],["rent","Rent only"],["sale","Buy only"]] as const).map(([k,l]) => (
             <button
               key={k}
               onClick={() => setSearch({ type: k })}
-              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                type === k ? "border-secondary bg-secondary text-secondary-foreground" : "border-border hover:bg-muted"
+              className={`whitespace-nowrap rounded-full border-[1.5px] px-4 py-1.5 text-xs font-semibold transition ${
+                type === k ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:border-primary"
               }`}
             >
               {l}
@@ -89,36 +97,39 @@ function SearchPage() {
           ))}
           <button
             onClick={() => setSearch({ delivery: !delivery })}
-            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-              delivery ? "border-secondary bg-secondary text-secondary-foreground" : "border-border hover:bg-muted"
+            className={`whitespace-nowrap rounded-full border-[1.5px] px-4 py-1.5 text-xs font-semibold transition ${
+              delivery ? "border-primary bg-accent text-primary" : "border-border bg-card text-muted-foreground hover:border-primary"
             }`}
           >
-            Delivery available
+            🚚 Delivery
           </button>
-          <select
-            value={sort}
-            onChange={(e) => setSearch({ sort: e.target.value as never })}
-            className="ml-auto h-8 rounded-full border border-border bg-background px-3 text-xs font-semibold"
-          >
-            <option value="recent">Recently added</option>
-            <option value="price_asc">Price: low → high</option>
-            <option value="price_desc">Price: high → low</option>
-            <option value="rating">Top rated</option>
-          </select>
         </div>
 
-        <h1 className="mt-6 text-xl font-bold">
-          {params.q ? `Results for "${params.q}"` : "All rentals"}
-          {location?.city && <span className="ml-2 text-sm font-medium text-muted-foreground">in {location.city}</span>}
-        </h1>
+        {/* Sort row */}
+        <div className="mt-3 flex items-center justify-between">
+          <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold">
+            <Filter className="h-3 w-3" />
+            <select
+              value={sort}
+              onChange={(e) => setSearch({ sort: e.target.value as never })}
+              className="bg-transparent text-xs font-semibold outline-none"
+            >
+              <option value="recent">Recently added</option>
+              <option value="price_asc">Price: Low → High</option>
+              <option value="price_desc">Price: High → Low</option>
+              <option value="rating">Top Rated</option>
+            </select>
+          </div>
+        </div>
 
         {isFetching ? (
           <div className="grid place-items-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
         ) : !data || data.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center">
-            <p className="font-semibold">No matches found</p>
+          <div className="mt-6 rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-16 text-center">
+            <div className="text-5xl">🔍</div>
+            <p className="mt-3 font-semibold">No results found</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {location?.city ? `Try a wider area or change your location.` : `Try setting your location to see items near you.`}
+              Try adjusting your filters or search term
             </p>
           </div>
         ) : (
