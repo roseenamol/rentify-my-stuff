@@ -20,16 +20,16 @@ export function MobileNav() {
             <li key={to} className="flex">
               <Link
                 to={to}
-                className="flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium"
+                className="flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-semibold"
               >
                 {primary ? (
-                  <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-accent text-primary-foreground shadow-glow">
+                  <span className="-mt-7 grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-glow ring-4 ring-background">
                     <Icon className="h-5 w-5" />
                   </span>
                 ) : (
-                  <Icon className={`h-5 w-5 ${active ? "text-secondary" : "text-muted-foreground"}`} />
+                  <Icon className={`h-5 w-5 ${active ? "text-primary" : "text-muted-foreground"}`} />
                 )}
-                {!primary && <span className={active ? "text-secondary" : "text-muted-foreground"}>{label}</span>}
+                {!primary && <span className={active ? "text-primary" : "text-muted-foreground"}>{label}</span>}
               </Link>
             </li>
           );

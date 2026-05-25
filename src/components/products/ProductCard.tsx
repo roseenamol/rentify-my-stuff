@@ -22,7 +22,7 @@ export function ProductCard({ p }: { p: ProductCardData }) {
     <Link
       to="/product/$id"
       params={{ id: p.id }}
-      className="group block overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+      className="group block overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-elevated active:scale-[0.98]"
     >
       <div className="relative aspect-square overflow-hidden bg-muted">
         {cover ? (
@@ -33,19 +33,19 @@ export function ProductCard({ p }: { p: ProductCardData }) {
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="grid h-full w-full place-items-center bg-gradient-accent/30 text-2xl font-black text-muted-foreground/40">
-            {p.title.slice(0, 1)}
+          <div className="grid h-full w-full place-items-center bg-[#1a1a2e] text-5xl">
+            <span className="opacity-90">📦</span>
           </div>
         )}
         <div className="absolute left-2 top-2 flex gap-1">
           {p.listing_type !== "sale" && (
-            <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
+            <span className="rounded-md border border-primary bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
               Rent
             </span>
           )}
           {p.listing_type !== "rent" && (
-            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground">
-              Sale
+            <span className="rounded-md bg-foreground px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-background">
+              Buy
             </span>
           )}
         </div>
@@ -55,31 +55,35 @@ export function ProductCard({ p }: { p: ProductCardData }) {
           </span>
         )}
       </div>
-      <div className="space-y-1.5 p-3">
-        <h3 className="line-clamp-1 font-semibold leading-tight">{p.title}</h3>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <MapPin className="h-3 w-3" />
+      <div className="space-y-1 p-2.5">
+        <h3 className="line-clamp-1 text-xs font-semibold leading-tight">{p.title}</h3>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <MapPin className="h-2.5 w-2.5" />
           <span className="truncate">{[p.area, p.city].filter(Boolean).join(", ") || "Nearby"}</span>
         </div>
-        <div className="flex items-end justify-between pt-1">
-          <div>
-            {p.rent_price_day != null && (
-              <p className="text-base font-bold leading-none">
-                {formatINR(p.rent_price_day)}
-                <span className="text-xs font-normal text-muted-foreground">/day</span>
-              </p>
-            )}
-            {p.sale_price != null && p.listing_type !== "rent" && (
-              <p className="text-xs text-muted-foreground">Buy {formatINR(p.sale_price)}</p>
-            )}
+        {(p.rating ?? 0) > 0 && (
+          <div className="flex items-center gap-0.5 text-[11px] font-semibold">
+            <Star className="h-3 w-3 fill-warning text-warning" />
+            {Number(p.rating).toFixed(1)}
           </div>
-          {(p.rating ?? 0) > 0 && (
-            <div className="flex items-center gap-0.5 text-xs font-semibold">
-              <Star className="h-3 w-3 fill-warning text-warning" />
-              {Number(p.rating).toFixed(1)}
-            </div>
+        )}
+        <div className="pt-1">
+          {p.rent_price_day != null && (
+            <p className="text-sm font-extrabold leading-none text-primary">
+              {formatINR(p.rent_price_day)}
+              <span className="text-[10px] font-normal text-muted-foreground">/day</span>
+            </p>
+          )}
+          {p.sale_price != null && p.listing_type !== "rent" && (
+            <p className="mt-0.5 text-[10px] text-muted-foreground">Buy {formatINR(p.sale_price)}</p>
           )}
         </div>
+        <button
+          type="button"
+          className="mt-2 w-full rounded-lg border border-primary bg-accent py-1.5 text-[11px] font-bold text-primary transition hover:bg-primary hover:text-primary-foreground"
+        >
+          {p.listing_type === "sale" ? "Buy Now" : "Rent Now"}
+        </button>
       </div>
     </Link>
   );

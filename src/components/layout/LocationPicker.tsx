@@ -29,12 +29,14 @@ export function LocationPicker({ compact = false }: { compact?: boolean }) {
           className="flex items-center gap-1.5 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
         >
           <MapPin className="h-4 w-4 text-secondary" />
+          <MapPin className="h-3.5 w-3.5 text-primary" />
           {compact ? (
-            <span className="truncate max-w-[8rem]">{location?.city ?? "Set location"}</span>
+            <span className="truncate max-w-[10rem] text-xs font-semibold text-primary">
+              {location?.city ?? "Set location"} ▾
+            </span>
           ) : (
-            <span className="flex flex-col items-start leading-tight">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Deliver to</span>
-              <span className="truncate max-w-[10rem]">{location?.city ?? "Set your area"}</span>
+            <span className="text-xs font-semibold text-primary">
+              {location?.city ?? "Set your area"} ▾
             </span>
           )}
         </button>
