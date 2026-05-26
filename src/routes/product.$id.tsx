@@ -41,8 +41,8 @@ function ProductPage() {
     enabled: !!p?.owner_id,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("display_name, avatar_url, city, is_verified, rating")
+        .from("public_profiles")
+        .select("display_name, avatar_url, is_verified, rating")
         .eq("id", p!.owner_id)
         .maybeSingle();
       if (error) throw error;
