@@ -365,7 +365,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          display_name: string | null
+          id: string | null
+          is_verified: boolean | null
+          rating: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          rating?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          rating?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
