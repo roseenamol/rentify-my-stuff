@@ -266,7 +266,7 @@ function ProductPage() {
                     {owner?.display_name ?? "Owner"}
                     {owner?.is_verified && <ShieldCheck className="ml-1 inline h-4 w-4 text-secondary" />}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">{owner?.city ?? "—"}</p>
+                  <p className="text-[11px] text-muted-foreground">{[p.area, p.city].filter(Boolean).join(", ") || "—"}</p>
                 </div>
               </div>
             </div>
