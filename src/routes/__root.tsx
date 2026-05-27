@@ -81,10 +81,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "India's modern rental marketplace. Rent cameras, gaming gear, tools, dresses, and more — or list your unused items to earn." },
       { name: "author", content: "Rentify" },
       { property: "og:title", content: "Rentify — Rent anything, anywhere" },
-      { property: "og:description", content: "Rent and sell second-hand items in your neighborhood." },
+      { property: "og:description", content: "India's modern rental marketplace. Rent cameras, gaming gear, tools, dresses, and more — or list your unused items to earn." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Rentify" },
+      { name: "twitter:title", content: "Rentify — Rent anything, anywhere" },
+      { name: "twitter:description", content: "India's modern rental marketplace. Rent cameras, gaming gear, tools, dresses, and more — or list your unused items to earn." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5c4a2115-42a3-4991-8d7a-b16009b4dad4/id-preview-6b761793--0383e3c4-70c2-4680-9d1b-265ad90d209b.lovable.app-1779795824145.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5c4a2115-42a3-4991-8d7a-b16009b4dad4/id-preview-6b761793--0383e3c4-70c2-4680-9d1b-265ad90d209b.lovable.app-1779795824145.png" },
     ],
     links: [
       {
