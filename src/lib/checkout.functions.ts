@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { checkoutPayloadSchema } from "@/lib/validation";
+import type { Database } from "@/integrations/supabase/types";
+
+type RentalInsert = Database["public"]["Tables"]["rentals"]["Insert"];
+type OrderInsert = Database["public"]["Tables"]["orders"]["Insert"];
 
 /**
  * Server-authoritative checkout.
@@ -32,8 +36,8 @@ export const placeOrder = createServerFn({ method: "POST" })
     if (prodErr) throw new Error(prodErr.message);
     const byId = new Map((products ?? []).map((p) => [p.id, p]));
 
-    const rentalRows: Array<Record<string, unknown>> = [];
-    const orderRows: Array<Record<string, unknown>> = [];
+    const rentalRows: RentalInsert[] = [];
+    const orderRows: OrderInsert[] = [];
 
     for (const item of data.items) {
       const p = byId.get(item.product_id);

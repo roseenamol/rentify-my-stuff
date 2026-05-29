@@ -1,68 +1,63 @@
-import { createFileRoute, useNavigate, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatINR } from "@/lib/format";
 import { useCart } from "@/hooks/use-cart";
-import { useAuth } from "@/hooks/use-auth";
+import { placeOrder } from "@/lib/checkout.functions";
 
-export const Route = createFileRoute("/checkout")({
+export const Route = createFileRoute("/_authenticated/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Rentify" }] }),
   component: CheckoutPage,
 });
 
 function CheckoutPage() {
   const { items, subtotal, depositTotal, clear } = useCart();
-  const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [submitting, setSubmitting] = useState(false);
+  const qc = useQueryClient();
   const [done, setDone] = useState(false);
   const [delivery, setDelivery] = useState<"pickup" | "delivery">("pickup");
   const [address, setAddress] = useState("");
 
-  if (!loading && !user) throw redirect({ to: "/login" });
+  const placeOrderFn = useServerFn(placeOrder);
 
-  const placeOrder = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!user || items.length === 0) return;
-    setSubmitting(true);
-    try {
-      for (const it of items) {
-        const { data: product } = await supabase.from("products").select("owner_id").eq("id", it.productId).maybeSingle();
-        if (!product) continue;
-        if (it.mode === "rent") {
-          const start = new Date();
-          const end = new Date(); end.setDate(end.getDate() + (it.days ?? 1));
-          await supabase.from("rentals").insert({
-            product_id: it.productId, renter_id: user.id, owner_id: product.owner_id,
-            start_date: start.toISOString().slice(0,10),
-            end_date: end.toISOString().slice(0,10),
-            total_amount: (it.pricePerDay ?? 0) * (it.days ?? 1) * it.qty,
-            deposit: (it.deposit ?? 0) * it.qty,
-            delivery_option: delivery,
-            delivery_address: delivery === "delivery" ? address : null,
-          });
-        } else {
-          await supabase.from("orders").insert({
-            product_id: it.productId, buyer_id: user.id, owner_id: product.owner_id,
-            amount: (it.salePrice ?? 0) * it.qty,
-            delivery_option: delivery,
-            delivery_address: delivery === "delivery" ? address : null,
-          });
-        }
-      }
+  const mut = useMutation({
+    mutationFn: () =>
+      placeOrderFn({
+        data: {
+          delivery_option: delivery,
+          delivery_address: delivery === "delivery" ? address : null,
+          items: items.map((i) => ({
+            product_id: i.productId,
+            mode: i.mode,
+            qty: i.qty,
+            days: i.mode === "rent" ? i.days ?? 1 : undefined,
+          })),
+        },
+      }),
+    onSuccess: () => {
       clear();
+      qc.invalidateQueries({ queryKey: ["my-rentals"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
       setDone(true);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setSubmitting(false);
+    },
+    onError: (e: Error) => toast.error(e.message || "Could not place your order"),
+  });
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (items.length === 0) return;
+    if (delivery === "delivery" && address.trim().length < 5) {
+      toast.error("Please enter a delivery address.");
+      return;
     }
+    mut.mutate();
   };
 
   if (done) {
@@ -85,7 +80,10 @@ function CheckoutPage() {
     <AppLayout>
       <div className="mx-auto max-w-4xl px-4 py-8 lg:px-6">
         <h1 className="text-3xl font-black">Checkout</h1>
-        <form onSubmit={placeOrder} className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+        <p className="mt-1 text-sm text-muted-foreground">
+          Prices are recomputed securely on the server before your order is placed.
+        </p>
+        <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
           <div className="space-y-5">
             <div className="rounded-2xl border border-border bg-card p-5">
               <h2 className="mb-3 text-lg font-bold">Delivery</h2>
@@ -100,19 +98,19 @@ function CheckoutPage() {
               {delivery === "delivery" && (
                 <div className="mt-4">
                   <Label>Delivery address</Label>
-                  <Input value={address} onChange={(e) => setAddress(e.target.value)} required placeholder="Flat, building, area, city, pincode" />
+                  <Input value={address} onChange={(e) => setAddress(e.target.value)} required placeholder="Flat, building, area, city, pincode" maxLength={500} />
                 </div>
               )}
             </div>
 
             <div className="rounded-2xl border border-border bg-card p-5">
               <h2 className="mb-3 text-lg font-bold">Payment</h2>
-              <p className="text-sm text-muted-foreground">Demo checkout — no charges. We'll wire up a real payment provider when you're ready.</p>
+              <p className="text-sm text-muted-foreground">Demo checkout — no charges. Wire up a payment provider when you're ready.</p>
             </div>
           </div>
 
           <div className="h-fit rounded-2xl border border-border bg-card p-5 shadow-soft">
-            <h2 className="text-lg font-bold">Summary</h2>
+            <h2 className="text-lg font-bold">Summary <span className="ml-2 text-xs font-medium text-muted-foreground">(estimated)</span></h2>
             <div className="mt-3 space-y-2 text-sm">
               {items.map((i) => (
                 <div key={i.productId + i.mode} className="flex justify-between">
@@ -124,8 +122,8 @@ function CheckoutPage() {
                 <div className="flex justify-between"><span>Total</span><span>{formatINR(subtotal + depositTotal)}</span></div>
               </div>
             </div>
-            <Button type="submit" disabled={submitting || items.length === 0} size="lg" className="mt-4 w-full rounded-full">
-              {submitting ? "Placing order…" : "Place order"}
+            <Button type="submit" disabled={mut.isPending || items.length === 0} size="lg" className="mt-4 w-full rounded-full">
+              {mut.isPending ? "Placing order…" : "Place order"}
             </Button>
           </div>
         </form>

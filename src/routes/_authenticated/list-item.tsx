@@ -1,8 +1,8 @@
-import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import { toast } from "sonner";
-import { Plus, X, Upload } from "lucide-react";
+import { Plus, X, Upload, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -11,16 +11,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "@/hooks/use-location";
+import { uploadProductImage } from "@/lib/storage";
 
-export const Route = createFileRoute("/list-item")({
+export const Route = createFileRoute("/_authenticated/list-item")({
   head: () => ({ meta: [{ title: "List your item — Rentify" }] }),
   component: ListItemPage,
 });
 
 function ListItemPage() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const { location } = useLocation();
   const navigate = useNavigate();
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories-full"],
@@ -41,32 +43,50 @@ function ListItemPage() {
     category_id: "", subcategory_id: "",
     city: location?.city ?? "", area: location?.area ?? "", pincode: location?.pincode ?? "",
     delivery_available: false,
-    image_url: "",
   });
   const [images, setImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
-
-  if (!loading && !user) {
-    throw redirect({ to: "/login" });
-  }
+  const [uploading, setUploading] = useState(false);
 
   const selectedCat = categories.find((c: { id: string }) => c.id === form.category_id);
 
-  const addImage = () => {
-    const url = form.image_url.trim();
-    if (!url) return;
-    setImages((p) => [...p, url]);
-    setForm((f) => ({ ...f, image_url: "" }));
+  const onPickFiles = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length || !user) return;
+    if (images.length + files.length > 8) {
+      toast.error("Max 8 images per listing.");
+      return;
+    }
+    setUploading(true);
+    try {
+      for (const f of files) {
+        const { url } = await uploadProductImage(f, user.id);
+        setImages((prev) => [...prev, url]);
+      }
+      toast.success("Uploaded.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (!form.title.trim()) return toast.error("Title is required.");
+    if (form.listing_type !== "sale" && !form.rent_price_day) {
+      return toast.error("Set a rent price per day.");
+    }
+    if (form.listing_type !== "rent" && !form.sale_price) {
+      return toast.error("Set a sale price.");
+    }
     setSubmitting(true);
     const payload = {
       owner_id: user.id,
-      title: form.title.trim(),
-      description: form.description.trim() || null,
+      title: form.title.trim().slice(0, 140),
+      description: form.description.trim().slice(0, 4000) || null,
       condition: form.condition,
       listing_type: form.listing_type,
       rent_price_day: form.rent_price_day ? Number(form.rent_price_day) : null,
@@ -97,10 +117,10 @@ function ListItemPage() {
         <form onSubmit={onSubmit} className="mt-8 space-y-6">
           <Section title="Basics">
             <Field label="Title" required>
-              <Input value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} required placeholder="e.g. Canon EOS 80D DSLR Camera" />
+              <Input value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} required maxLength={140} placeholder="e.g. Canon EOS 80D DSLR Camera" />
             </Field>
             <Field label="Description">
-              <Textarea rows={4} value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} placeholder="Specs, included accessories, usage rules…" />
+              <Textarea rows={4} maxLength={4000} value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} placeholder="Specs, included accessories, usage rules…" />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Category">
@@ -126,10 +146,12 @@ function ListItemPage() {
           </Section>
 
           <Section title="Photos">
-            <div className="flex gap-2">
-              <Input value={form.image_url} onChange={(e) => setForm({...form, image_url: e.target.value})} placeholder="Paste image URL" />
-              <Button type="button" onClick={addImage} variant="outline"><Upload className="mr-1 h-4 w-4" />Add</Button>
-            </div>
+            <p className="text-xs text-muted-foreground">JPG, PNG, WEBP or GIF — up to 5 MB each, max 8 photos.</p>
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={onPickFiles} className="hidden" />
+            <Button type="button" variant="outline" disabled={uploading || images.length >= 8} onClick={() => fileRef.current?.click()}>
+              {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
+              {uploading ? "Uploading…" : "Upload photos"}
+            </Button>
             {images.length > 0 && (
               <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {images.map((img, i) => (
@@ -172,8 +194,8 @@ function ListItemPage() {
 
           <Section title="Location & delivery">
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="City"><Input value={form.city} onChange={(e) => setForm({...form, city: e.target.value})} /></Field>
-              <Field label="Area"><Input value={form.area} onChange={(e) => setForm({...form, area: e.target.value})} /></Field>
+              <Field label="City"><Input value={form.city} onChange={(e) => setForm({...form, city: e.target.value})} maxLength={80} /></Field>
+              <Field label="Area"><Input value={form.area} onChange={(e) => setForm({...form, area: e.target.value})} maxLength={120} /></Field>
               <Field label="Pincode"><Input value={form.pincode} onChange={(e) => setForm({...form, pincode: e.target.value})} maxLength={6} /></Field>
             </div>
             <label className="flex items-center gap-2 text-sm">

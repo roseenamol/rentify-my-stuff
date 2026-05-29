@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarRange, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button";
 import { formatINR } from "@/lib/format";
 import { useAuth } from "@/hooks/use-auth";
 
-export const Route = createFileRoute("/rentals")({
+export const Route = createFileRoute("/_authenticated/rentals")({
   head: () => ({ meta: [{ title: "My rentals — Rentify" }] }),
   component: RentalsPage,
 });
 
 function RentalsPage() {
-  const { user, loading } = useAuth();
-  if (!loading && !user) throw redirect({ to: "/login" });
+  const { user } = useAuth();
 
   const { data: rentals = [] } = useQuery({
     queryKey: ["my-rentals", user?.id],
