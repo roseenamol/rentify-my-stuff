@@ -1,29 +1,68 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { loginSchema, type LoginInput } from "@/lib/validation";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Rentify" }, { name: "description", content: "Sign in to Rentify to rent and list items." }] }),
   component: LoginPage,
 });
 
+const COOLDOWN_KEY = "rentify-login-cooldown";
+const MAX_ATTEMPTS = 5;
+const COOLDOWN_SECONDS = 30;
+
 function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+  });
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  // Tick down any active cooldown.
+  useEffect(() => {
+    const raw = localStorage.getItem(COOLDOWN_KEY);
+    if (!raw) return;
+    try {
+      const { until } = JSON.parse(raw) as { until: number };
+      const tick = () => {
+        const left = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+        setCooldown(left);
+        if (left === 0) localStorage.removeItem(COOLDOWN_KEY);
+      };
+      tick();
+      const t = setInterval(tick, 1000);
+      return () => clearInterval(t);
+    } catch { /* ignore */ }
+  }, []);
+
+  const recordFailure = () => {
+    const rawAttempts = sessionStorage.getItem("rentify-login-attempts");
+    const attempts = (rawAttempts ? parseInt(rawAttempts, 10) : 0) + 1;
+    sessionStorage.setItem("rentify-login-attempts", String(attempts));
+    if (attempts >= MAX_ATTEMPTS) {
+      const until = Date.now() + COOLDOWN_SECONDS * 1000;
+      localStorage.setItem(COOLDOWN_KEY, JSON.stringify({ until }));
+      setCooldown(COOLDOWN_SECONDS);
+      sessionStorage.removeItem("rentify-login-attempts");
+    }
+  };
+
+  const onSubmit = async ({ email, password }: LoginInput) => {
+    if (cooldown > 0) return;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      recordFailure();
+      return toast.error(error.message);
+    }
+    sessionStorage.removeItem("rentify-login-attempts");
     toast.success("Welcome back!");
     navigate({ to: "/" });
   };
@@ -55,17 +94,22 @@ function LoginPage() {
             <div className="h-px flex-1 bg-border" />or<div className="h-px flex-1 bg-border" />
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3" noValidate>
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Input id="email" type="email" autoComplete="email" {...register("email")} />
+              {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>}
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link to="/forgot-password" className="text-xs font-semibold text-secondary hover:underline">Forgot?</Link>
+              </div>
+              <Input id="password" type="password" autoComplete="current-password" {...register("password")} />
+              {errors.password && <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>}
             </div>
-            <Button type="submit" disabled={loading} className="w-full rounded-full">
-              {loading ? "Signing in…" : "Sign in"}
+            <Button type="submit" disabled={isSubmitting || cooldown > 0} className="w-full rounded-full">
+              {cooldown > 0 ? `Try again in ${cooldown}s` : isSubmitting ? "Signing in…" : "Sign in"}
             </Button>
           </form>
 

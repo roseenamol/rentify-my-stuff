@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Package, IndianRupee, Star, Trash2, EyeOff, Eye, Tag } from "lucide-react";
 import { toast } from "sonner";
@@ -8,16 +8,14 @@ import { Button } from "@/components/ui/button";
 import { formatINR } from "@/lib/format";
 import { useAuth } from "@/hooks/use-auth";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Owner dashboard — Rentify" }] }),
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const qc = useQueryClient();
-
-  if (!loading && !user) throw redirect({ to: "/login" });
 
   const { data: products = [] } = useQuery({
     queryKey: ["my-products", user?.id],
