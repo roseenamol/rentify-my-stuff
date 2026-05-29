@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          metadata: Json
+          target_id: string | null
+          target_table: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          target_table?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          target_table?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           icon: string | null
@@ -391,7 +421,16 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      log_audit_event: {
+        Args: {
+          _action: string
+          _metadata: Json
+          _target_id: string
+          _target_table: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       listing_type: "rent" | "sale" | "both"
