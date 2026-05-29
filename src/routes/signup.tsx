@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signupSchema, type SignupInput } from "@/lib/validation";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Create account — Rentify" }, { name: "description", content: "Join Rentify to rent and list items." }] }),
@@ -14,14 +16,11 @@ export const Route = createFileRoute("/signup")({
 
 function SignupPage() {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignupInput>({
+    resolver: zodResolver(signupSchema),
+  });
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const onSubmit = async ({ email, password, name }: SignupInput) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -30,7 +29,6 @@ function SignupPage() {
         data: { display_name: name },
       },
     });
-    setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Account created. Check your email to verify.");
     navigate({ to: "/" });
@@ -63,21 +61,29 @@ function SignupPage() {
             <div className="h-px flex-1 bg-border" />or<div className="h-px flex-1 bg-border" />
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3" noValidate>
             <div>
               <Label htmlFor="name">Full name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input id="name" autoComplete="name" {...register("name")} />
+              {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Input id="email" type="email" autoComplete="email" {...register("email")} />
+              {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>}
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+              <Input id="password" type="password" autoComplete="new-password" {...register("password")} />
+              {errors.password && <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>}
             </div>
-            <Button type="submit" disabled={loading} className="w-full rounded-full">
-              {loading ? "Creating…" : "Create account"}
+            <div>
+              <Label htmlFor="confirm">Confirm password</Label>
+              <Input id="confirm" type="password" autoComplete="new-password" {...register("confirm")} />
+              {errors.confirm && <p className="mt-1 text-xs text-destructive">{errors.confirm.message}</p>}
+            </div>
+            <Button type="submit" disabled={isSubmitting} className="w-full rounded-full">
+              {isSubmitting ? "Creating…" : "Create account"}
             </Button>
           </form>
 

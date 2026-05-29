@@ -7,6 +7,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -126,6 +129,7 @@ function RootComponent() {
         <AuthProvider>
           <LocationProvider>
             <CartProvider>
+              <AuthInvalidator />
               <Outlet />
               <Toaster richColors position="top-center" />
             </CartProvider>
@@ -134,4 +138,24 @@ function RootComponent() {
       </ThemeProvider>
     </QueryClientProvider>
   );
+}
+
+/**
+ * Single root-level listener that clears React Query caches and re-runs
+ * route loaders whenever the auth state changes. Prevents stale user data
+ * from sticking around after sign-in / sign-out / token refresh.
+ */
+function AuthInvalidator() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+        queryClient.invalidateQueries();
+        router.invalidate();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [router, queryClient]);
+  return null;
 }
