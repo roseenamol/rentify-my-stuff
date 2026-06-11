@@ -60,14 +60,16 @@ function RentalsPage() {
           ) : (
             <div className="space-y-3">
               {rentals.map((r: { id: string; products: { id: string; title: string; images: string[] } | null; start_date: string; end_date: string; total_amount: number; deposit: number; status: string }) => (
-                <RentalCard key={r.id}
-                  title={r.products?.title ?? "Item"}
-                  image={r.products?.images?.[0]}
-                  productId={r.products?.id}
-                  status={r.status}
-                  meta={`${r.start_date} → ${r.end_date}`}
-                  amount={`${formatINR(r.total_amount)} + ${formatINR(r.deposit)} deposit`}
-                />
+                <Link key={r.id} to="/rentals/$id" params={{ id: r.id }} className="block transition hover:opacity-90">
+                  <RentalCard
+                    title={r.products?.title ?? "Item"}
+                    image={r.products?.images?.[0]}
+                    productId={r.products?.id}
+                    status={r.status}
+                    meta={`${r.start_date} → ${r.end_date} · Tap to track`}
+                    amount={`${formatINR(r.total_amount)} + ${formatINR(r.deposit)} deposit`}
+                  />
+                </Link>
               ))}
             </div>
           )}
