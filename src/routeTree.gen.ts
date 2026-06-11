@@ -24,6 +24,7 @@ import { Route as AuthenticatedRentalsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedListItemRouteImport } from './routes/_authenticated/list-item'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
+import { Route as AuthenticatedRentalsIdRouteImport } from './routes/_authenticated/rentals.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -99,6 +100,11 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRentalsIdRoute = AuthenticatedRentalsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedRentalsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -112,9 +118,10 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/list-item': typeof AuthenticatedListItemRoute
-  '/rentals': typeof AuthenticatedRentalsRoute
+  '/rentals': typeof AuthenticatedRentalsRouteWithChildren
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
+  '/rentals/$id': typeof AuthenticatedRentalsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -128,9 +135,10 @@ export interface FileRoutesByTo {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/list-item': typeof AuthenticatedListItemRoute
-  '/rentals': typeof AuthenticatedRentalsRoute
+  '/rentals': typeof AuthenticatedRentalsRouteWithChildren
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
+  '/rentals/$id': typeof AuthenticatedRentalsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -146,9 +154,10 @@ export interface FileRoutesById {
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/list-item': typeof AuthenticatedListItemRoute
-  '/_authenticated/rentals': typeof AuthenticatedRentalsRoute
+  '/_authenticated/rentals': typeof AuthenticatedRentalsRouteWithChildren
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
+  '/_authenticated/rentals/$id': typeof AuthenticatedRentalsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/category/$slug'
     | '/product/$id'
+    | '/rentals/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/category/$slug'
     | '/product/$id'
+    | '/rentals/$id'
   id:
     | '__root__'
     | '/'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated/rentals'
     | '/category/$slug'
     | '/product/$id'
+    | '/_authenticated/rentals/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -323,21 +335,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/rentals/$id': {
+      id: '/_authenticated/rentals/$id'
+      path: '/$id'
+      fullPath: '/rentals/$id'
+      preLoaderRoute: typeof AuthenticatedRentalsIdRouteImport
+      parentRoute: typeof AuthenticatedRentalsRoute
+    }
   }
 }
+
+interface AuthenticatedRentalsRouteChildren {
+  AuthenticatedRentalsIdRoute: typeof AuthenticatedRentalsIdRoute
+}
+
+const AuthenticatedRentalsRouteChildren: AuthenticatedRentalsRouteChildren = {
+  AuthenticatedRentalsIdRoute: AuthenticatedRentalsIdRoute,
+}
+
+const AuthenticatedRentalsRouteWithChildren =
+  AuthenticatedRentalsRoute._addFileChildren(AuthenticatedRentalsRouteChildren)
 
 interface AuthenticatedRouteChildren {
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedListItemRoute: typeof AuthenticatedListItemRoute
-  AuthenticatedRentalsRoute: typeof AuthenticatedRentalsRoute
+  AuthenticatedRentalsRoute: typeof AuthenticatedRentalsRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedListItemRoute: AuthenticatedListItemRoute,
-  AuthenticatedRentalsRoute: AuthenticatedRentalsRoute,
+  AuthenticatedRentalsRoute: AuthenticatedRentalsRouteWithChildren,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
