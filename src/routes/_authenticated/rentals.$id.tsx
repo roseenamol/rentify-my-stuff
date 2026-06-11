@@ -58,7 +58,7 @@ function TrackingPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("rentals")
-        .select("id, status, total_amount, deposit, start_date, end_date, delivery_option, delivery_address, created_at, owner_id, products(id, title, images, location_city)")
+        .select("id, status, total_amount, deposit, start_date, end_date, delivery_option, delivery_address, created_at, owner_id, products(id, title, images, city)")
         .eq("id", id)
         .single();
       if (error) throw error;
@@ -70,7 +70,7 @@ function TrackingPage() {
     queryKey: ["rental-owner", rental?.owner_id],
     enabled: !!rental?.owner_id,
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("full_name, city").eq("id", rental!.owner_id).single();
+      const { data } = await supabase.from("profiles").select("display_name, city").eq("id", rental!.owner_id).single();
       return data;
     },
   });
@@ -274,7 +274,7 @@ function TrackingPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-xl bg-muted/40 p-3 text-center">
                     <div className="text-xs uppercase tracking-wide text-muted-foreground">Owner</div>
-                    <div className="mt-0.5 truncate text-sm font-bold">{owner?.full_name ?? "Owner"}</div>
+                    <div className="mt-0.5 truncate text-sm font-bold">{owner?.display_name ?? "Owner"}</div>
                     <Button variant="outline" size="sm" className="mt-2 w-full gap-1.5 rounded-lg">
                       <Phone className="h-3.5 w-3.5" /> Call
                     </Button>
@@ -299,8 +299,8 @@ function TrackingPage() {
                   ["Item", product?.title ?? "—"],
                   ["Rental period", `${rental.start_date} → ${rental.end_date}`],
                   ["Delivery", rental.delivery_option === "delivery" ? "Home delivery" : "Self pickup"],
-                  ["Address", rental.delivery_address ?? (product?.location_city ?? "—")],
-                  ["Owner", owner?.full_name ?? "—"],
+                  ["Address", rental.delivery_address ?? (product?.city ?? "—")],
+                  ["Owner", owner?.display_name ?? "—"],
                   ["Rental cost", formatINR(rental.total_amount)],
                   ["Deposit held", formatINR(rental.deposit)],
                   ["Booked on", new Date(rental.created_at).toLocaleDateString()],
